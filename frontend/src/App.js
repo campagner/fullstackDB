@@ -49,7 +49,7 @@ function App() {
       carregarUsuarios();
       carregarControladores();
     }
-  }, [auth]);
+  }, [auth, carregarUsuarios, carregarControladores]);
 
   // === Login ===
   const fazerLogin = (e) => {
