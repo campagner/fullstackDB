@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import axios from 'axios';
 import './App.css';
 import ControladorCard from './ControladorCard';
@@ -43,13 +43,29 @@ function App() {
     }
   }, []);
 
+  // === Usuários ===
+  const carregarUsuarios = useCallback(() => {
+    axios.get('/usuarios')
+      .then(res => setUsuarios(res.data))
+      .catch(err => console.error('Erro ao carregar usuários:', err));
+  }, []);
+
+  // === Controladores de Voo ===
+  const carregarControladores = useCallback(() => {
+    axios.get('/controladores', {
+      headers: { Authorization: `Bearer ${auth.token}` }
+    })
+      .then(res => setControladores(res.data))
+      .catch(err => console.error('Erro ao carregar controladores:', err));
+  }, [auth.token]);
+
   // Load data when auth changes
   useEffect(() => {
     if (auth.token) {
       carregarUsuarios();
       carregarControladores();
     }
-  }, [auth, carregarUsuarios, carregarControladores]);
+  }, [auth.token, carregarUsuarios, carregarControladores]);
 
   // === Login ===
   const fazerLogin = (e) => {
@@ -70,11 +86,15 @@ function App() {
     delete axios.defaults.headers.common['Authorization'];
   };
 
-  // === Usuários ===
-  const carregarUsuarios = () => {
-    axios.get('/usuarios')
-      .then(res => setUsuarios(res.data))
-      .catch(err => console.error('Erro ao carregar usuários:', err));
+  const fazerCadastro = (e) => {
+    e.preventDefault();
+    axios.post('/register', cadastroForm)
+      .then(() => {
+        alert('Cadastro realizado com sucesso!');
+        setCadastroForm({ nome: '', email: '', senha: '' });
+        setMostrarCadastro(false);
+      })
+      .catch(() => alert('Erro ao cadastrar usuário'));
   };
 
   const salvarUsuario = (e) => {
@@ -97,24 +117,6 @@ function App() {
       .catch(err => console.error('Erro ao excluir usuário:', err));
   };
 
-  // === Controladores de Voo ===
-  const carregarControladores = () => {
-    axios.get('/controladores', {
-      headers: { Authorization: `Bearer ${auth.token}` }
-    })
-      .then(res => setControladores(res.data))
-      .catch(err => console.error('Erro ao carregar controladores:', err));
-  };
-  const fazerCadastro = (e) => {
-  e.preventDefault();
-  axios.post('/register', cadastroForm)
-    .then(() => {
-      alert('Cadastro realizado com sucesso!');
-      setCadastroForm({ nome: '', email: '', senha: '' });
-      setMostrarCadastro(false);
-    })
-    .catch(() => alert('Erro ao cadastrar usuário'));
-};
   const salvarControlador = (e) => {
     e.preventDefault();
     const metodo = controladorForm.id ? 'put' : 'post';
